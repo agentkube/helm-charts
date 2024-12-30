@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "agentkube-operator-charts.fullname" . }}-test-connection"
+  labels:
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "agentkube-operator-charts.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
