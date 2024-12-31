@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  agentkube-operator-charts:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-12-31T14:44:51.771644+05:30"
+    description: AI Agent for Kubernetes Cluster
+    digest: bf124795cefe973de7f058226583ef71af862df643315dcc3bdabe1af2e077d6
+    name: agentkube-operator-charts
+    type: application
+    urls:
+    - https://agentkube.github.io/helm-charts/agentkube-operator-charts-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-12-31T14:44:51.770774+05:30"
