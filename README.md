@@ -1,10 +1,10 @@
 # Agentkube Operator: Helm Charts
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/agentkube-operator)](https://artifacthub.io/packages/search?repo=agentkube-operator)
+
 `AgentKube Operator` is a Kubernetes operator that enables seamless integration with the AgentKube platform for enhanced cluster management and monitoring capabilities.
 
-
 For detailed information about AgentKube and its features, visit our [documentation](https://docs.agentkube.com).
-
 
 ## Prerequisites
 
@@ -15,15 +15,15 @@ For detailed information about AgentKube and its features, visit our [documentat
 
 ## Installation
 
-1. Add the AgentKube Helm repository (if available):
+1. Add the AgentKube Helm repository:
    ```bash
-   helm repo add agentkube https://charts.agentkube.com
+   helm repo add agentkube https://agentkube.github.io/helm-charts
    helm repo update
    ```
 
 2. Install the operator:
    ```bash
-   helm install agentkube-operator ./agentkube-operator-charts \
+   helm install agentkube-operator agentkube/agentkube-operator-charts \
      -n agentkube-operator-system \
      --create-namespace
    ```
