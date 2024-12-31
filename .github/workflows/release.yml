@@ -1,0 +1,48 @@
+name: Release Helm Charts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Chart version'
+        required: true
+        type: string
+        default: '0.1.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.13.2
+
+      - name: Update Chart Version
+        run: |
+          yq eval ".version = \"${{ github.event.inputs.version }}\"" -i ./charts/agentkube-operator/Chart.yaml
+          yq eval ".appVersion = \"${{ github.event.inputs.version }}\"" -i ./charts/agentkube-operator/Chart.yaml
+
+      - name: Package Helm Chart
+        run: |
+          mkdir -p .cr-release-packages
+          helm package ./charts/agentkube-operator --destination .cr-release-packages
+
+      - name: Upload to GitHub Release
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: charts
+          config: cr.yaml
+          skip_existing: true
