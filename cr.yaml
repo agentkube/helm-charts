@@ -1,6 +1,7 @@
-owner: yourusername
+owner: agentkube
 git-base-url: https://api.github.com/
-git-repo: agentkube-operator-helm-charts
+git-repo: helm-charts
+index-path: ./index.yaml
 package-path: .cr-release-packages
-release-notes-file: RELEASE_NOTES.md
+charts-repo: https://agentkube.github.io/helm-charts
 skip-existing: true

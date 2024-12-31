@@ -1,0 +1,16 @@
+repositoryID: agentkube-operator
+owners:
+  - name: AgentKube
+    email: support@agentkube.com
+ignore: []
+displayName: AgentKube Operator
+url: https://github.com/agentkube/helm-charts
+private: false
+keywords:
+  - kubernetes
+  - operator
+  - monitoring
+  - cluster-management
+  - agentkube
+annotations:
+  images.supports: "Kubernetes v1.16+"

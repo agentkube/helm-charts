@@ -30,19 +30,17 @@ jobs:
 
       - name: Update Chart Version
         run: |
-          yq eval ".version = \"${{ github.event.inputs.version }}\"" -i ./charts/agentkube-operator/Chart.yaml
-          yq eval ".appVersion = \"${{ github.event.inputs.version }}\"" -i ./charts/agentkube-operator/Chart.yaml
+          yq eval ".version = \"${{ github.event.inputs.version }}\"" -i ./Chart.yaml
+          yq eval ".appVersion = \"${{ github.event.inputs.version }}\"" -i ./Chart.yaml
 
       - name: Package Helm Chart
         run: |
           mkdir -p .cr-release-packages
-          helm package ./charts/agentkube-operator --destination .cr-release-packages
+          helm package . --destination .cr-release-packages
 
       - name: Upload to GitHub Release
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
-          charts_dir: charts
-          config: cr.yaml
           skip_existing: true
