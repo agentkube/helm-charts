@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-ingress
+  labels:
+    app.kubernetes.io/name: ingress
+    app.kubernetes.io/instance: controller-manager
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/created-by: agent-kube-operator
+    app.kubernetes.io/part-of: agent-kube-operator
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "agentkube-operator-charts.fullname" . }}-controller
+            port:
+              number: 8082

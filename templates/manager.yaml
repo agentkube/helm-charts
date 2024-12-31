@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-controller-manager
+  labels:
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/created-by: agent-kube-operator
+    app.kubernetes.io/part-of: agent-kube-operator
+    control-plane: controller-manager
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      {{- include "agentkube-operator-charts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+        {{- include "agentkube-operator-charts.selectorLabels" . | nindent 8 }}
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+    spec:
+      containers:
+      - name: kube-rbac-proxy
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.15.0
+        args:
+        - "--secure-listen-address=0.0.0.0:8443"
+        - "--upstream=http://127.0.0.1:8080/"
+        - "--logtostderr=true"
+        - "--v=0"
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+          name: https
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 5m
+            memory: 64Mi
+      - name: manager
+        args:
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--leader-elect"
+        command:
+        - /manager
+        env:
+        - name: AGENTKUBE_SERVER_ENDPOINT
+          value: {{ quote .Values.manager.serverEndpoint }}
+        - name: AGENTKUBE_API_KEY
+          value: {{ quote .Values.manager.apikey }}
+        - name: CLUSTER_NAME
+          value: {{ quote .Values.manager.clusterName }}
+        - name: ACCESS_TYPE
+          value: {{ if .Values.manager.readonly }}{{ quote "READ_ONLY" }}{{ else }}{{ quote "READ_WRITE" }}{{ end }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 8082
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources: {{- toYaml .Values.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+      serviceAccountName: {{ include "agentkube-operator-charts.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 10

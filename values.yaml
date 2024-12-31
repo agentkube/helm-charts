@@ -5,28 +5,26 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: agentkube/agentkube-operator
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "v0.2.0"
+
+manager:
+  serverEndpoint: https://api.agentkube.com 
+  apikey: ak_4464f048c72e0a870ce507e30b3c2329
+  clusterName: local_cluster
+  readonly: true 
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
+  create: false
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
 
 securityContext: {}
   # capabilities:
@@ -38,7 +36,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8082
 
 ingress:
   enabled: false
@@ -80,3 +78,22 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
+# Metrics configuration
+metrics:
+  enabled: true
+  port: 8080
+  path: /metrics
+
+
+
+# Leader election configuration
+leaderElection:
+  enabled: true
+  resourceName: "agentkube-operator-leader-election"
+
+# Logging configuration
+logging:
+  level: info
+  format: json

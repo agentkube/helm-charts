@@ -1,6 +1,6 @@
 apiVersion: v2
-name: agentkube-operator-charts
-description: A Helm chart for Kubernetes
+name: agentkube-operator
+description: AI Agent for Kubernetes Cluster
 
 # A chart can be either an 'application' or a 'library' chart.
 #

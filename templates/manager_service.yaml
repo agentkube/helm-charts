@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-controller
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/name: service
+    app.kubernetes.io/instance: controller-manager
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/created-by: agent-kube-operator
+    app.kubernetes.io/part-of: agent-kube-operator
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    control-plane: controller-manager
+    {{- include "agentkube-operator-charts.selectorLabels" . | nindent 4 }}
