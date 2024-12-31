@@ -1,0 +1,6 @@
+owner: yourusername
+git-base-url: https://api.github.com/
+git-repo: agentkube-operator-helm-charts
+package-path: .cr-release-packages
+release-notes-file: RELEASE_NOTES.md
+skip-existing: true
