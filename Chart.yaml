@@ -1,5 +1,5 @@
 apiVersion: v2
-name: agentkube-operator
+name: agentkube-operator-charts
 description: AI Agent for Kubernetes Cluster
 
 # A chart can be either an 'application' or a 'library' chart.
