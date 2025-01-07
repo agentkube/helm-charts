@@ -23,9 +23,11 @@ For detailed information about AgentKube and its features, visit our [documentat
 
 2. Install the operator:
    ```bash
-   helm install agentkube-operator agentkube/agentkube-operator-charts \
-     -n agentkube-operator-system \
-     --create-namespace
+    helm install agentkube-operator agentkube/agentkube-operator \
+    -n agentkube-operator-system \
+    --create-namespace \
+    --set manager.apikey=AGENTKUBE_API_KEY \
+    --set manager.clusterName=CLUSTER_NAME
    ```
 
 ### Configuration
