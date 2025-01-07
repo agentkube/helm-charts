@@ -62,6 +62,8 @@ spec:
           value: {{ quote .Values.manager.clusterName }}
         - name: ACCESS_TYPE
           value: {{ if .Values.manager.readonly }}{{ quote "READ_ONLY" }}{{ else }}{{ quote "READ_WRITE" }}{{ end }}
+        - name: PROMETHEUS_URL
+          value: "http://{{ include "agentkube-operator-charts.fullname" . }}-prometheus.{{ .Release.Namespace }}.svc:9090"
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         livenessProbe:
           httpGet:

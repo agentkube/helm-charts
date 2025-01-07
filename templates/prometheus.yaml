@@ -1,0 +1,177 @@
+{{- if .Values.prometheus.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{ .Values.prometheus.scrapeInterval }}
+      evaluation_interval: {{ .Values.prometheus.evaluationInterval }}
+    
+    scrape_configs:
+      - job_name: 'kubernetes-nodes'
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+        - role: node
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics
+      
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
+      
+      - job_name: 'kubernetes-cadvisor'
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+        - role: node
+        relabel_configs:
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: prometheus
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  selector:
+    matchLabels:
+      app: prometheus
+      {{- include "agentkube-operator-charts.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.prometheus.replicas }}
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        {{- include "agentkube-operator-charts.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+      securityContext:
+        {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
+      containers:
+      - name: prometheus
+        image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
+        args:
+        {{- range .Values.prometheus.args }}
+        - {{ . | quote }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.prometheus.containerPort }}
+          name: http
+        resources:
+          {{- toYaml .Values.prometheus.resources | nindent 12 }}
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus/
+        - name: prometheus-storage
+          mountPath: /prometheus
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+      - name: prometheus-storage
+        emptyDir: 
+          {{- toYaml .Values.prometheus.storage | nindent 10 }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  labels:
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+rules:
+{{- toYaml .Values.prometheus.clusterRole.rules | nindent 2 }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  labels:
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+subjects:
+- kind: ServiceAccount
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agentkube-operator-charts.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: prometheus
+    {{- include "agentkube-operator-charts.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: prometheus
+    {{- include "agentkube-operator-charts.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.prometheus.service.port }}
+      targetPort: http
+      name: http
+  type: {{ .Values.prometheus.service.type }}
+{{- end }}
