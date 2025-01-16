@@ -42,7 +42,7 @@ The following table lists the configurable parameters of the AgentKube Operator 
 | `manager.readonly` | Read-Only Mode | `true` |
 | `replicaCount` | Number of operator replicas | `1` |
 | `image.repository` | Operator image repository | `agentkube/agentkube-operator` |
-| `image.tag` | Operator image tag | `v0.2.0` |
+| `image.tag` | Operator image tag | `v0.2.1` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Example Values File
